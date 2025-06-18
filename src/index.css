@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: aliceblue;
+}
+
+/* ✅ Tambahkan media query ini untuk mengecilkan font di mobile */
+@media (max-width: 768px) {
+  html {
+    font-size: 80%;
+  }
+}

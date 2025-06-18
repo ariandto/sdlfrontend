@@ -1,0 +1,235 @@
+// src/pages/DashboardPage.tsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../config/firebase";
+import apiClient from "../../config/apiClient";
+
+interface UserProfile {
+  email: string;
+  name: string;
+  photoURL: string;
+}
+
+interface StatusData {
+  door: string;
+  alarm: string;
+}
+
+const DashboardPage: React.FC = () => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [status, setStatus] = useState<StatusData>({ door: "", alarm: "" });
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark" ||
+      (!localStorage.getItem("theme") &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+  });
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Theme toggle
+  useEffect(() => {
+    const html = document.documentElement;
+    if (darkMode) {
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  // Cek session & ambil data user + status
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        setLoading(true);
+        const res = await apiClient.get("/checkSession", { withCredentials: true });
+
+        const { email, name, photoURL } = res.data.user;
+        setUser({ email, name, photoURL });
+
+        const statusRes = await apiClient.get("/status", { withCredentials: true });
+        setStatus(statusRes.data);
+      } catch (err) {
+        console.warn("❌ Session invalid. Redirecting to login.");
+        setUser(null);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    if (window.confirm("Logout?")) {
+      await apiClient.post("/logout", {}, { withCredentials: true });
+      window.location.href = "/";
+    }
+  };
+
+  const handleControlPage = () => navigate("/control");
+
+  const getStatusIcon = (type: string, value: string) => {
+    if (type === "door") return value.toLowerCase() === "terbuka" ? "🔓" : "🔒";
+    return value.toLowerCase() === "aktif" ? "🚨" : "🔕";
+  };
+
+  const getStatusColor = (type: string, value: string) => {
+    if (type === "door") {
+      return value.toLowerCase() === "terbuka"
+        ? "text-red-600 dark:text-red-400"
+        : "text-green-600 dark:text-green-400";
+    }
+    return value.toLowerCase() === "aktif"
+      ? "text-orange-600 dark:text-orange-400"
+      : "text-gray-600 dark:text-gray-400";
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4" />
+          <p className="text-gray-600 dark:text-gray-300">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Smart Door Lock
+          </h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Profile Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition">
+            <div className="flex flex-col items-center text-center">
+              {user?.photoURL ? (
+                <div className="relative">
+                  <img
+                    src={user.photoURL}
+                    alt="Foto Profil"
+                    className="w-24 h-24 rounded-full mb-4 border-4 border-blue-200 dark:border-blue-800 shadow-lg"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full mb-4 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl text-white font-bold">
+                    {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                  </span>
+                </div>
+              )}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                {user?.name || "Pengguna"}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                {user?.email}
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span>Online</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              Status Sistem
+            </h3>
+            <div className="space-y-4">
+              {/* Door */}
+              <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{getStatusIcon("door", status.door)}</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Status Pintu</p>
+                    <p className={`text-sm font-semibold ${getStatusColor("door", status.door)}`}>
+                      {status.door || "Tidak diketahui"}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    status.door?.toLowerCase() === "terbuka"
+                      ? "bg-red-500 animate-pulse"
+                      : "bg-green-500"
+                  }`}
+                />
+              </div>
+
+              {/* Alarm */}
+              <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{getStatusIcon("alarm", status.alarm)}</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Status Alarm</p>
+                    <p className={`text-sm font-semibold ${getStatusColor("alarm", status.alarm)}`}>
+                      {status.alarm || "Tidak diketahui"}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    status.alarm?.toLowerCase() === "aktif"
+                      ? "bg-orange-500 animate-pulse"
+                      : "bg-gray-400"
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Control */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={handleControlPage}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-3"
+          >
+            <span className="text-xl">🎛️</span>
+            <span className="text-lg">Buka Panel Kontrol</span>
+          </button>
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p>&copy; 2025 Smart Door Lock System. All rights reserved.</p>
+          <p className="mt-1">
+            Terakhir diperbarui: {new Date().toLocaleString("id-ID")}
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+};
+
+export default DashboardPage;
