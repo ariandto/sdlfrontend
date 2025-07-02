@@ -1,8 +1,6 @@
 // src/pages/DashboardPage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../config/firebase";
 import apiClient from "../../config/apiClient";
 
 interface UserProfile {
@@ -71,6 +69,7 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleControlPage = () => navigate("/control");
+  const handleAccessLogPage = () => navigate("/history");
 
   const getStatusIcon = (type: string, value: string) => {
     if (type === "door") return value.toLowerCase() === "terbuka" ? "🔓" : "🔒";
@@ -209,15 +208,27 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Control */}
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={handleControlPage}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-3"
-          >
-            <span className="text-xl">🎛️</span>
-            <span className="text-lg">Buka Panel Kontrol</span>
-          </button>
+        {/* Control Buttons Section */}
+        <div className="mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 max-w-2xl mx-auto">
+            {/* Panel Kontrol Button */}
+            <button
+              onClick={handleControlPage}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 w-full"
+            >
+              <span className="text-xl">🎛️</span>
+              <span className="text-base sm:text-lg">Panel Kontrol</span>
+            </button>
+
+            {/* Riwayat Button */}
+            <button
+              onClick={handleAccessLogPage}
+              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 w-full"
+            >
+              <span className="text-xl">📋</span>
+              <span className="text-base sm:text-lg">Riwayat</span>
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
