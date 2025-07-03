@@ -2,6 +2,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../config/apiClient";
+import {
+  DoorOpen,
+  DoorClosed,
+  AlarmCheck,
+  AlarmClockOff,
+  Settings2,
+  ListChecks,
+  Users2,
+  Sun,
+  Moon,
+  LogOut,
+} from "lucide-react";
 
 interface UserProfile {
   email: string;
@@ -18,9 +30,11 @@ const DashboardPage: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [status, setStatus] = useState<StatusData>({ door: "", alarm: "" });
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark" ||
+    return (
+      localStorage.getItem("theme") === "dark" ||
       (!localStorage.getItem("theme") &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -42,12 +56,16 @@ const DashboardPage: React.FC = () => {
     const checkSession = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get("/checkSession", { withCredentials: true });
+        const res = await apiClient.get("/checkSession", {
+          withCredentials: true,
+        });
 
         const { email, name, photoURL } = res.data.user;
         setUser({ email, name, photoURL });
 
-        const statusRes = await apiClient.get("/status", { withCredentials: true });
+        const statusRes = await apiClient.get("/status", {
+          withCredentials: true,
+        });
         setStatus(statusRes.data);
       } catch (err) {
         console.warn("❌ Session invalid. Redirecting to login.");
@@ -70,6 +88,7 @@ const DashboardPage: React.FC = () => {
 
   const handleControlPage = () => navigate("/control");
   const handleAccessLogPage = () => navigate("/history");
+  const handleAccessSettingPage = () => navigate("/access-setting");
 
   const getStatusIcon = (type: string, value: string) => {
     if (type === "door") return value.toLowerCase() === "terbuka" ? "🔓" : "🔒";
@@ -168,10 +187,19 @@ const DashboardPage: React.FC = () => {
               {/* Door */}
               <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getStatusIcon("door", status.door)}</span>
+                  <span className="text-2xl">
+                    {getStatusIcon("door", status.door)}
+                  </span>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Status Pintu</p>
-                    <p className={`text-sm font-semibold ${getStatusColor("door", status.door)}`}>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Status Pintu
+                    </p>
+                    <p
+                      className={`text-sm font-semibold ${getStatusColor(
+                        "door",
+                        status.door
+                      )}`}
+                    >
                       {status.door || "Tidak diketahui"}
                     </p>
                   </div>
@@ -188,10 +216,19 @@ const DashboardPage: React.FC = () => {
               {/* Alarm */}
               <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getStatusIcon("alarm", status.alarm)}</span>
+                  <span className="text-2xl">
+                    {getStatusIcon("alarm", status.alarm)}
+                  </span>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Status Alarm</p>
-                    <p className={`text-sm font-semibold ${getStatusColor("alarm", status.alarm)}`}>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Status Alarm
+                    </p>
+                    <p
+                      className={`text-sm font-semibold ${getStatusColor(
+                        "alarm",
+                        status.alarm
+                      )}`}
+                    >
                       {status.alarm || "Tidak diketahui"}
                     </p>
                   </div>
@@ -216,17 +253,23 @@ const DashboardPage: React.FC = () => {
               onClick={handleControlPage}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 w-full"
             >
-              <span className="text-xl">🎛️</span>
+              <Settings2 size={22} />
               <span className="text-base sm:text-lg">Panel Kontrol</span>
             </button>
-
-            {/* Riwayat Button */}
             <button
               onClick={handleAccessLogPage}
               className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 w-full"
             >
-              <span className="text-xl">📋</span>
+              <ListChecks size={22} />
               <span className="text-base sm:text-lg">Riwayat</span>
+            </button>
+
+            <button
+              onClick={handleAccessSettingPage}
+              className="bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3 w-full"
+            >
+              <Users2 size={22} />
+              <span className="text-base sm:text-lg">Manage Access</span>
             </button>
           </div>
         </div>

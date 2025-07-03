@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../config/apiClient";
+import { ArrowLeft } from "lucide-react";
 
 interface UserProfile {
   uid: string;
@@ -122,7 +123,7 @@ const ControlPage: React.FC = () => {
           {/* Back btn + title */}
           <div className="flex items-center gap-4">
             <button onClick={handleBack} className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-label="Kembali">
-              ←
+            <ArrowLeft className="h-4 w-4" />
             </button>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Panel Kontrol</h1>
           </div>
