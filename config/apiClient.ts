@@ -2,10 +2,10 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "https://apiv2.widiyasetiya.my.id/api", // sesuaikan dengan backend kamu
+  baseURL: "http://localhost:4000/api", // sesuaikan dengan backend kamu
   withCredentials: true,
 
-  //https://srviot.ariandto.cloud/api
+
 });
 
 export const setAuthToken = (token: string) => {
